@@ -9949,7 +9949,7 @@ In particular, return the buffer position of the first `for' kwd."
                                     (js2-multiline-decl-indentation)))
            (bracket (nth 1 parse-status))
            beg indent)
-      (+ left-margin
+      (+ (current-left-margin)
          (cond
           ;; indent array comprehension continuation lines specially
           ((and bracket
