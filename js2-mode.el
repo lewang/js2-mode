@@ -9949,57 +9949,56 @@ In particular, return the buffer position of the first `for' kwd."
                                     (js2-multiline-decl-indentation)))
            (bracket (nth 1 parse-status))
            beg indent)
-      (+ (current-left-margin)
-         (cond
-          ;; indent array comprehension continuation lines specially
-          ((and bracket
-              (>= js2-language-version 170)
-              (not (js2-same-line bracket))
-              (setq beg (js2-indent-in-array-comp parse-status))
-              (>= (point) (save-excursion
-                           (goto-char beg)
-                           (point-at-bol)))) ; at or after first loop?
-           (js2-array-comp-indentation parse-status beg))
+      (cond
+       ;; indent array comprehension continuation lines specially
+       ((and bracket
+           (>= js2-language-version 170)
+           (not (js2-same-line bracket))
+           (setq beg (js2-indent-in-array-comp parse-status))
+           (>= (point) (save-excursion
+                        (goto-char beg)
+                        (point-at-bol)))) ; at or after first loop?
+        (js2-array-comp-indentation parse-status beg))
 
-          (ctrl-stmt-indent)
+       (ctrl-stmt-indent)
 
-          ((and declaration-indent continued-expr-p)
-           (+ declaration-indent js2-basic-offset))
+       ((and declaration-indent continued-expr-p)
+        (+ declaration-indent js2-basic-offset))
 
-          (declaration-indent)
+       (declaration-indent)
 
-          (bracket
-           (goto-char bracket)
-           (cond
-            ((looking-at "[({[][ \t]*\\(/[/*]\\|$\\)")
-             (when (save-excursion (skip-chars-backward " \t)")
-                                   (looking-at ")"))
-               (backward-list))
-             (back-to-indentation)
-             (and (eq js2-pretty-multiline-declarations 'all)
-                (looking-at js2-declaration-keyword-re)
-                (goto-char (1+ (match-end 0))))
-             (setq indent
-                   (cond (same-indent-p
-                          (current-column))
-                         (continued-expr-p
-                          (+ (current-column) (* 2 js2-basic-offset)))
-                         (t
-                          (+ (current-column) js2-basic-offset))))
-             (if (and js2-indent-switch-body
-                    (not at-closing-bracket)
-                    (looking-at "\\_<switch\\_>"))
-                 (+ indent js2-basic-offset)
-               indent))
-            (t
-             (unless same-indent-p
-               (forward-char)
-               (skip-chars-forward " \t"))
-             (current-column))))
+       (bracket
+        (goto-char bracket)
+        (cond
+         ((looking-at "[({[][ \t]*\\(/[/*]\\|$\\)")
+          (when (save-excursion (skip-chars-backward " \t)")
+                                (looking-at ")"))
+            (backward-list))
+          (back-to-indentation)
+          (and (eq js2-pretty-multiline-declarations 'all)
+             (looking-at js2-declaration-keyword-re)
+             (goto-char (1+ (match-end 0))))
+          (setq indent
+                (cond (same-indent-p
+                       (current-column))
+                      (continued-expr-p
+                       (+ (current-column) (* 2 js2-basic-offset)))
+                      (t
+                       (+ (current-column) js2-basic-offset))))
+          (if (and js2-indent-switch-body
+                 (not at-closing-bracket)
+                 (looking-at "\\_<switch\\_>"))
+              (+ indent js2-basic-offset)
+            indent))
+         (t
+          (unless same-indent-p
+            (forward-char)
+            (skip-chars-forward " \t"))
+          (current-column))))
 
-          (continued-expr-p js2-basic-offset)
+       (continued-expr-p js2-basic-offset)
 
-          (t 0))))))
+       (t (current-left-margin))))))
 
 (defun js2-lineup-comment (parse-status)
   "Indent a multi-line block comment continuation line."
